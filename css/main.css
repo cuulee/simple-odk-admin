@@ -20,3 +20,54 @@ body {
   line-height: 20px;
   background-color: #ECECEC;
 }
+
+.ellipsis:after {
+  position: absolute;
+  font-size: 11px;
+  content: attr(title);
+  background: #333;
+  color: white;
+  opacity: 0.8;
+  padding: 0.2em 0.6em;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+}
+
+div:hover > div > .ellipsis:after {
+  left: 80%;
+}
+
+.example-appear {
+  opacity: 0.01;
+  transform: translate3d(0,200px,0);
+  transition: transform 0.5s ease-out, opacity 0.2s ease-in !important;
+}
+
+.example-appear.example-appear-active {
+  opacity: 1;
+  transform: translate3d(0,0,0);
+}
+
+.example-enter {
+  opacity: 0.01;
+  transform: translate3d(0,200px,0);
+  transition: transform 0.5s ease-out, opacity 0.2s ease-in !important;
+}
+
+.example-enter.example-enter-active {
+  opacity: 1;
+  transform: translate3d(0,0,0);
+}
+
+.example-leave {
+  z-index: -1;
+  opacity: 1;
+  transform: translate3d(0,0,0);
+  transition: transform 0.5s ease-in, opacity 0.5s ease-in !important;
+}
+
+.example-leave.example-leave-active {
+  opacity: 0.01;
+  transform: translate3d(0,200px,-1000px);
+}

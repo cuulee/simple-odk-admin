@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { PropTypes } from 'react'
+import PureComponent from 'react-pure-render/component'
 import { AppBar as MuiAppBar } from 'material-ui'
 
 const style = {
@@ -6,7 +7,7 @@ const style = {
   top: 0
 }
 
-class AppBar extends React.Component {
+class AppBar extends PureComponent {
   render () {
     return (
       <MuiAppBar title={this.props.title} style={style} zDepth={2} />
@@ -15,7 +16,7 @@ class AppBar extends React.Component {
 }
 
 AppBar.propTypes = {
-  title: React.PropTypes.string
+  title: PropTypes.string
 }
 
 export default AppBar
