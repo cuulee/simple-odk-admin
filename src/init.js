@@ -2,6 +2,7 @@ import React from 'react'
 import Routes from './routes'
 import { ServerActions } from './actions'
 import Dispatcher from './dispatcher'
+import { githubToken } from '../config'
 
 window.React = React
 
@@ -13,17 +14,17 @@ ServerActions.fetch({
   sourceId: 'github',
   ownerId: 'digidem',
   storeId: 'sample-monitoring-data',
-  type: 'forms',
-  authToken: 'af0b713a3de61fc1b571ef3c11103f1e937c62f8'
+  collectionId: 'forms',
+  authToken: githubToken
 })
 
 ServerActions.fetch({
   sourceId: 'github',
   ownerId: 'digidem',
   storeId: 'sample-monitoring-data',
-  formId: 'monitoring',
-  type: 'responses',
-  authToken: 'af0b713a3de61fc1b571ef3c11103f1e937c62f8'
+  formId: 'forms/monitoring/form.xml',
+  collectionId: 'responses',
+  authToken: githubToken
 })
 
 React.render(Routes, document.getElementById('app'))
