@@ -6,6 +6,8 @@
 
 var inherits = require('inherits')
 var EventEmitter = require('events').EventEmitter
+var serialize = require('json-stable-stringify')
+var unserialize = JSON.parse
 
 module.exports = Queue
 
@@ -23,9 +25,11 @@ function Queue (worker, concurrency) {
 inherits(Queue, EventEmitter)
 
 Queue.prototype.add = function (task, callback) {
-  if (this.tasks.indexOf(task)) return false
+  var serializedTask = serialize(task)
 
-  this.tasks.push(task)
+  if (this.tasks.indexOf(serializedTask) > -1) return false
+
+  this.tasks.push(serializedTask)
   this.callbacks.push(callback)
   if (this.running < this.concurrency) {
     this.running++
@@ -37,7 +41,7 @@ Queue.prototype.add = function (task, callback) {
 Queue.prototype.invoke = function () {
   if (this.tasks.length) {
     var callback = this.callbacks.shift()
-    var task = this.tasks.shift()
+    var task = unserialize(this.tasks.shift())
     this.worker(task, function () {
       callback.apply(global, arguments)
       this.next.apply(this, arguments)
@@ -47,10 +51,9 @@ Queue.prototype.invoke = function () {
   }
 }
 
-Queue.prototype.next = function (err) {
-  if (err) this.emit('error', err)
+Queue.prototype.next = function () {
   if (this.tasks.length) {
-    setImmediate(this.invoke)
+    setTimeout(this.invoke, 0)
   } else {
     this.running--
     if (!this.running) {

@@ -22,7 +22,7 @@ const RESPONSE_REGEX = new RegExp(`^${RESPONSE_FOLDER}/(.*)/(.*)\.geojson`)
  * @param  {Function} callback callback(error, ids) where ids is an array of ids
  */
 function list (options, callback) {
-  switch (options.type) {
+  switch (options.collectionId) {
     case 'forms':
       return _getList(options, FORM_REGEX, callback)
     case 'responses':
@@ -43,9 +43,7 @@ function list (options, callback) {
  * @param  {Function} callback callback(error, response) where response is an object
  */
 function get (options, callback) {
-  if (!options.id) return callback(new Error('Missing id'))
-
-  switch (options.type) {
+  switch (options.collectionId) {
     case 'forms':
       return _getForm(options, callback)
     case 'responses':
@@ -84,22 +82,22 @@ function _getForm (options, callback) {
   const params = options.branch ? '?ref=' + options.branch : ''
   const octo = new Octokat({ token: options.authToken })
   const repo = octo.repos(options.ownerId, options.storeId)
-  const id = options.id
+  const id = options.formId
 
   repo.contents(id + params).read((err, xform) => {
     if (err) return callback(err)
-    parseXform(xform, (err, formRecord) => {
+    parseXform(xform, (err, form) => {
       if (err) return callback(err)
-      formRecord.id = id
-      formRecord.xml = xform
+      form.id = id
+      form.xml = xform
       if (id.indexOf(FORMS_PATH) === 0) {
-        formRecord.active = true
+        form.active = true
       } else if (id.indexOd(INACTIVE_FORMS_PATH) === 0) {
-        formRecord.active = false
+        form.active = false
       } else {
         callback(new Error('This is not a valid form'))
       }
-      callback(null, formRecord)
+      callback(null, form)
     })
   })
 }
@@ -114,11 +112,11 @@ function _getResponse (options, callback) {
   const params = options.branch ? '?ref=' + options.branch : ''
   const octo = new Octokat({ token: options.authToken })
   const repo = octo.repos(options.ownerId, options.storeId)
-  const id = options.id
+  const id = options.responseId
 
   repo.contents(id + params).read((err, response) => {
     if (err) return callback(err)
-    console.log(response)
+    callback(null, JSON.parse(response))
   })
 }
 

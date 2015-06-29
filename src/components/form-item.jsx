@@ -24,9 +24,7 @@ const styles = {
 
 class FormItem extends PureComponent {
   render () {
-    const { selectedId, createLink, dataLocal } = this.props
-    const formId = dataLocal.get('id')
-    const name = dataLocal.get('name')
+    const { selectedId, createLink, formId, name, active } = this.props
 
     let icon
     let style = assign({}, styles.base)
@@ -34,7 +32,7 @@ class FormItem extends PureComponent {
     // active or not, or if this is a button to create a new form
     if (formId === 'new') {
       icon = <IconNew />
-    } else if (dataLocal.get('active')) {
+    } else if (active) {
       icon = <IconActive />
     } else {
       icon = <IconInactive />
@@ -43,7 +41,7 @@ class FormItem extends PureComponent {
 
     // If this item is currently selected, override style
     if (selectedId === formId) {
-      assign(style, styles.selected)
+      style = assign({}, style, styles.selected)
     }
 
     return (
@@ -62,13 +60,9 @@ class FormItem extends PureComponent {
 FormItem.propTypes = {
   selectedId: PropTypes.string.isRequired,
   createLink: PropTypes.func.isRequired,
-  dataLocal: ImmutablePropTypes.mapOf(
-    ImmutablePropTypes.shape({
-      name: PropTypes.string.isRequired,
-      id: PropTypes.string.isRequired,
-      active: PropTypes.bool
-    })
-  )
+  name: PropTypes.string.isRequired,
+  formId: PropTypes.string.isRequired,
+  active: PropTypes.bool
 }
 
 export default FormItem

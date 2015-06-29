@@ -1,67 +1,81 @@
 import React from 'react'
 import { Styles } from 'material-ui'
 
-import { AppBar } from './components'
-// import { ServerActions } from './actions'
+import { AppBar, FormView, FormList, OfflineComponent } from './components'
 import Store from './store'
 import connectToStore from './utils/connect-to-store'
-
-const ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
+import connectToTheme from './utils/connect-to-theme'
+import { createKeyPath } from './records'
 
 const ThemeManager = new Styles.ThemeManager()
 
 const AppBarHeight = ThemeManager.getCurrentTheme().component.appBar.height
 
 const styles = {
-  FormList: {
-    width: 312,
-    float: 'left',
-    marginLeft: 8,
-    marginTop: AppBarHeight + 8
+  wrapper: {
+    marginTop: AppBarHeight,
+    padding: 8,
+    position: 'relative'
   },
-  FormView: {
+  formList: {
+    width: 312,
+    height: '100%',
+    position: 'fixed'
+  },
+  formViewWrapper: {
     marginLeft: 320,
-    marginTop: AppBarHeight + 8,
     position: 'relative'
   }
 }
 
-class App extends React.Component {
-  getChildContext () {
-    return {
-      muiTheme: ThemeManager.getCurrentTheme()
-    }
-  }
-
+@connectToTheme(ThemeManager.getCurrentTheme())
+@connectToStore(Store)
+class App extends OfflineComponent {
   createLink (id) {
     const { sourceId, ownerId, storeId } = this.props.params
     return `/${sourceId}/${ownerId}/${storeId}/forms/${encodeURIComponent(id)}`
   }
 
   render () {
-    const store = this.props.store
-    const FormList = this.props.FormList
-    const FormView = FormList && FormList.props.FormView
-    const formId = encodeURIComponent(this.props.params.formId)
-    const forms = store.getAllIn(['github', 'digidem-test', 'sample-monitoring-data'])
-    const form = store.getIn(['github', 'digidem-test', 'sample-monitoring-data', formId])
+    const formId = decodeURIComponent(this.props.params.formId)
+    const forms = this.getInLocal(createKeyPath({
+      sourceId: 'github',
+      ownerId: 'digidem',
+      storeId: 'sample-monitoring-data',
+      collectionId: 'forms'
+    }))
+    const activeForms = forms.filter(form => {
+      return form.getIn(['data', 'active'])
+    })
+    const inactiveForms = forms.filter(form => {
+      return !form.getIn(['data', 'active'], true)
+    })
+    if (formId) {
+      let keyPath = createKeyPath({
+        sourceId: 'github',
+        ownerId: 'digidem',
+        storeId: 'sample-monitoring-data',
+        formId: formId
+      })
+      var form = this.getInLocalRemote(keyPath)
+    }
     return (
       <div>
-        <AppBar title='ODK Form Manager' />
-        { FormList && React.addons.cloneWithProps(FormList, {
-          style: styles.FormList,
-          dataLocal: forms.dataLocal,
-          remoteData: forms.dataRemote,
-          createLink: this.createLink.bind(this)
-        }) }
-        <ReactCSSTransitionGroup transitionName='example' transitionAppear={true}>
-          { FormView && React.addons.cloneWithProps(FormView, {
-            key: formId,
-            style: styles.FormView,
-            dataLocal: form.dataLocal,
-            dataRemote: form.dataRemote
-          }) }
-        </ReactCSSTransitionGroup>
+        <AppBar key='asd' title='ODK Form Manager' />
+        <div style={styles.wrapper}>
+          {forms && (
+            <FormList
+              style={styles.formList}
+              activeForms={activeForms}
+              inactiveForms={inactiveForms}
+              createLink={this.createLink.bind(this)}
+              selectedId={formId}
+              />
+          )}
+          <div style={styles.formViewWrapper}>
+            {form.dataLocal && <FormView {...form} params={this.props.params} />}
+          </div>
+        </div>
       </div>
     )
   }
@@ -72,8 +86,4 @@ App.propTypes = {
   params: React.PropTypes.object
 }
 
-App.childContextTypes = {
-  muiTheme: React.PropTypes.object
-}
-
-export default connectToStore(App, Store)
+export default App

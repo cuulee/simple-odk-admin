@@ -12,8 +12,8 @@ export default (
   <Router history={new HashHistory()}>
     <Route component={App}>
       <Redirect from={basePath} to={basePath + '/forms'} />
-      <Route path={basePath + '/forms'} components={{FormList: FormList}} >
-        <Route path=':formId' components={{FormView: FormView}} />
+      <Route path={basePath + '/forms'} >
+        <Route path=':formId' />
       </Route>
     </Route>
   </Router>

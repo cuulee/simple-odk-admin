@@ -38,21 +38,15 @@ div:hover > div > .ellipsis:after {
   left: 80%;
 }
 
-.example-appear {
-  opacity: 0.01;
-  transform: translate3d(0,200px,0);
-  transition: transform 0.5s ease-out, opacity 0.2s ease-in !important;
-}
-
-.example-appear.example-appear-active {
-  opacity: 1;
-  transform: translate3d(0,0,0);
+table tr td:first-child {
+  width: 16px !important;
 }
 
 .example-enter {
+  z-index: 1;
   opacity: 0.01;
   transform: translate3d(0,200px,0);
-  transition: transform 0.5s ease-out, opacity 0.2s ease-in !important;
+  transition: transform 2s ease-in;
 }
 
 .example-enter.example-enter-active {
@@ -64,10 +58,10 @@ div:hover > div > .ellipsis:after {
   z-index: -1;
   opacity: 1;
   transform: translate3d(0,0,0);
-  transition: transform 0.5s ease-in, opacity 0.5s ease-in !important;
+  transition: transform 0.5s ease-in, opacity 0.5s ease-in;
 }
 
 .example-leave.example-leave-active {
   opacity: 0.01;
-  transform: translate3d(0,200px,-1000px);
+  transform: translate3d(0,200px,0);
 }

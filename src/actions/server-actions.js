@@ -1,77 +1,86 @@
-import assign from 'object-assign'
-
 import Dispatcher from '../dispatcher'
-import { MutationConstants, AsyncTaskConstants } from '../constants'
+import { ActionConstants, AsyncTaskConstants } from '../constants'
 import sources from '../sources'
 import checkArgs from '../utils/check-request-args'
 import Queue from '../utils/queue'
-import stringify from 'json-stable-stringify'
+import { Request, createKeyPath, getIdKey } from '../records'
 
-const q = new Queue(request)
+const q = new Queue(makeRequest)
 
-function request (task, callback) {
-  task = JSON.parse(task)
-  let error = checkArgs(task)
+function makeRequest (request, callback) {
+  let error = checkArgs(request)
   if (error) return callback(error)
 
-  const source = sources[task.sourceId]
+  const source = sources[request.sourceId]
   if (!source) {
     return callback('Invalid or missing sourceId')
   }
 
-  switch (task.type) {
+  switch (request.type) {
   case AsyncTaskConstants.GET:
-    source.get(task, callback)
+    source.get(request, callback)
     break
   case AsyncTaskConstants.LIST:
-    source.list(task, callback)
+    source.list(request, callback)
+    break
+  case AsyncTaskConstants.UPDATE:
     break
   default:
-    // no-op
+    throw new Error('invalid or missing request type')
   }
 }
 
 function fetch (options = {}) {
-  Dispatcher.dispatch({
-    type: MutationConstants.READ,
-    payload: assign({}, options)
-  })
+  const request = new Request(options)
 
-  var task = stringify(options)
+  if (request.collectionId) {
+    Dispatcher.dispatch({
+      type: ActionConstants.READ,
+      payload: request
+    })
+    let listRequest = request.set('type', AsyncTaskConstants.LIST)
+    q.add(listRequest.toJS(), getAll)
+  } else {
+    let id = createKeyPath(request).pop()
+    getAll(null, [id])
+  }
 
-  q.add(task, (err, ids) => {
-    if (err) return fetchError(options, err)
+  function getAll (err, ids) {
+    if (err) return fetchError(request, err)
+    const idKey = getIdKey(request)
+
     let count = ids.length
-    ids.forEach(id => {
-      const getOptions = assign({}, options, { id })
-      q.add(getOptions, (err, response) => {
-        if (err) return fetchError(getOptions, err)
-        fetchSuccess(getOptions, response)
+    ids.slice(0,20).forEach(id => {
+      const getRequest = request.set('type', AsyncTaskConstants.GET).set(idKey, id)
+      q.add(getRequest.toJS(), (err, record) => {
+        if (err) return fetchError(getRequest, err)
+        fetchProgress(getRequest, record)
         count--
-        if (count === 0) fetchSuccess(options)
+        if (count === 0) fetchSuccess(request)
       })
     })
-  })
+  }
 }
 
-function fetchSuccess (reqOptions, data) {
-  const payload = assign({}, reqOptions)
-  payload.data = data
-
+function fetchProgress (request, data) {
   Dispatcher.dispatch({
-    type: MutationConstants.READ_SUCCESS,
-    payload: payload
+    type: ActionConstants.READ_PROGRESS,
+    payload: request.set('data', data)
   })
 }
 
-function fetchError (reqOptions, err) {
-  const payload = assign({}, reqOptions)
-  payload.err = err
-
+function fetchSuccess (request) {
   Dispatcher.dispatch({
-    type: MutationConstants.READ_ERROR,
-    payload: payload
+    type: ActionConstants.READ_SUCCESS,
+    payload: request
   })
 }
 
-export default { fetch, fetchSuccess, fetchError }
+function fetchError (request, error) {
+  Dispatcher.dispatch({
+    type: ActionConstants.READ_ERROR,
+    payload: request.set('error', error)
+  })
+}
+
+export default { fetch }

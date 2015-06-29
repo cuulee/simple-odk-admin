@@ -46,7 +46,7 @@ const BaseRecord = function (defaultValues) {
       id: undefined,
       error: undefined,
       version: undefined
-    }))
+    }, defaultValues))
 }
 
 /**
@@ -96,6 +96,7 @@ const FormData = Record({
   xformId: undefined,
   name: 'Unnamed Form',
   xformVersion: 1,
+  active: true,
   xml: undefined
 })
 
@@ -132,32 +133,95 @@ const Response = BaseRecord({
 
 /**
  * We manage a log of all pending requests to the server. `type` is one of
- * 'CREATE', 'READ', 'UPDATE', 'DELETE'.
+ * 'CREATE', 'READ', 'UPDATE', 'DELETE'. `collectionId` is one of 'sources',
+ * 'stores', 'forms', 'media', 'responses'
  *
  * @type {Record}
  */
 const Request = Record({
   sourceId: undefined,
+  ownerId: undefined,
   storeId: undefined,
   formId: undefined,
   mediaId: undefined,
   responseId: undefined,
+  collectionId: undefined,
+  authToken: undefined,
   data: {},
-  type: undefined
+  type: undefined,
+  error: undefined
 })
 
-function createKeyPath (obj) {
+/**
+ * createKeyPath creates an array keyPath that can be used to get or set deep values
+ * in an Immutable (see http://facebook.github.io/immutable-js/docs/#/List/setIn)
+ * If `collectionId` is set then the keypath will point to a Map or records, rather
+ * than a record value.
+ *
+ * @param  {Request} request - A request record.
+ * @return {array}          a keyPath array
+ */
+function createKeyPath (request = new Request()) {
   const keyPath = []
-  const keys = [ 'sourceId', 'storeId', 'formId', 'responseId', 'mediaId' ]
+  const { sourceId, ownerId, storeId, formId, responseId, mediaId, collectionId } = request
+  const fullStoreId = ownerId + '/' + storeId
 
-  keys.forEach(key => {
-    if (obj[key]) keyPath.push(obj[key])
-  })
+  if (responseId) {
+    keyPath.unshift(responseId)
+  }
+
+  if (mediaId) {
+    keyPath.unshift(mediaId)
+  }
+
+  if (formId) {
+    if (collectionId === 'responses' || responseId) keyPath.unshift('responses', 'collection')
+    if (collectionId === 'media' || mediaId) keyPath.unshift('media', 'collection')
+    keyPath.unshift(formId)
+  }
+
+  if (fullStoreId) {
+    if (collectionId === 'forms' || formId) keyPath.unshift('forms', 'collection')
+    keyPath.unshift(fullStoreId)
+  }
+
+  if (sourceId) {
+    if (collectionId === 'stores' || fullStoreId) keyPath.unshift('stores', 'collection')
+    keyPath.unshift(sourceId)
+  }
+
+  if (!sourceId && collectionId !== 'sources') {
+    throw new Error('invalid request')
+  }
 
   return keyPath
 }
 
+function getIdKey (request = new Request()) {
+  const { sourceId, storeId, formId, mediaId, responseId, collectionId } = request
+
+  if (responseId || collectionId === 'responses') return 'responseId'
+  if (mediaId || collectionId === 'media') return 'mediaId'
+  if (formId || collectionId === 'forms') return 'formId'
+  if (storeId || collectionId === 'stores') return 'storeId'
+  if (sourceId || collectionId === 'sources') return 'sourceId'
+}
+
+function createRecord (request = new Request()) {
+  const { sourceId, storeId, formId, mediaId, responseId, data } = request
+  if (!data) throw new Error('no data to create new record')
+  if (responseId) return new Response({ data })
+  if (mediaId) return new Media(data)
+  if (formId) {
+    return new Form({
+      id: data.id,
+      data: new FormData(data)
+    })
+  }
+}
+
 export default {
+  Collection,
   Source,
   Store,
   Form,
@@ -165,5 +229,7 @@ export default {
   Media,
   Response,
   Request,
-  createKeyPath
+  createKeyPath,
+  getIdKey,
+  createRecord
 }

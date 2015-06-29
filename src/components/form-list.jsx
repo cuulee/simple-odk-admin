@@ -18,20 +18,24 @@ import ProgressListItem from './progress-list-item'
  */
 class FormList extends PureComponent {
   render () {
-    const { dataLocal, ...other } = this.props
+    const { activeForms, inactiveForms, awaitingUpdates, style, ...other } = this.props
 
-    const forms = dataLocal.get('collection')
-    const awaitingUpdates = dataLocal.get('awaitingUpdates')
+    const activeFormItems = activeForms.map(form => {
+      const formId = form.get('id')
+      const name = form.getIn(['data', 'name'])
+      return <FormItem key={formId} {...other} formId={formId} name={name} active={true} />
+    })
 
-    const activeFormItems = forms.filter(form => form.get('active'))
-      .map(form => <FormItem key={form.get('id')} {...other} data={form} />)
-
-    const inactiveFormItems = forms.filter(form => !form.get('active'))
-      .map(form => <FormItem key={form.get('id')} {...other} data={form} />)
+    const inactiveFormItems = inactiveForms.map(form => {
+      console.log(form.toJS())
+      const formId = form.get('id')
+      const name = form.getIn(['data', 'name'])
+      return <FormItem key={formId} {...other} formId={formId} name={name} />
+    })
 
     return (
-      <div>
-        {activeFormItems.length > 0 && (
+      <div style={style}>
+        {activeFormItems.count() > 0 && (
           <div>
             <List subheader='Active Forms'>
               {activeFormItems}
@@ -39,7 +43,7 @@ class FormList extends PureComponent {
             <ListDivider />
           </div>
         )}
-        {inactiveFormItems.length > 0 && (
+        {inactiveFormItems.count() > 0 && (
           <div>
             <List subheader='Inactive Forms'>
               {inactiveFormItems}
@@ -52,9 +56,11 @@ class FormList extends PureComponent {
             <ProgressListItem />
           </List>
         )}
-        <List subheader='Create'>
-          <FormItem name='New Form...' id='new' {...other} />
-        </List>
+        {!awaitingUpdates && (
+          <List subheader='Create'>
+            <FormItem name='New Form...' formId='new' {...other} />
+          </List>
+        )}
         <ListDivider />
       </div>
     )
@@ -62,15 +68,12 @@ class FormList extends PureComponent {
 }
 
 FormList.propTypes = {
-  dataLocal: ImmutablePropTypes.mapOf(
-    ImmutablePropTypes.shape({
-      name: PropTypes.string.isRequired,
-      id: PropTypes.string.isRequired,
-      active: PropTypes.bool.isRequired
-    })
-  ),
+  activeForms: ImmutablePropTypes.map.isRequired,
+  inactiveForms: ImmutablePropTypes.map.isRequired,
   selectedId: PropTypes.string,
-  createLink: PropTypes.func.isRequired
+  awaitingUpdates: PropTypes.bool,
+  createLink: PropTypes.func.isRequired,
+  style: PropTypes.object
 }
 
 export default FormList

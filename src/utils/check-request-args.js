@@ -8,7 +8,7 @@ export default function checkRequestArgs (options = {}) {
   if (!options.ownerId) return new Error('Missing ownerId')
 
   /*eslint-disable no-fallthrough*/
-  switch (options.type) {
+  switch (options.collectionId) {
     case 'responses':
       if (!options.formId) return new Error('Missing formId')
     case 'forms':

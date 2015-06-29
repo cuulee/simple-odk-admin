@@ -25,10 +25,7 @@ export default function parseXform (xform, callback) {
   var path = ''
 
   const meta = {
-    xformId: undefined,
-    name: undefined,
     media: [],
-    version: undefined,
     xml: xform
   }
 
@@ -37,7 +34,7 @@ export default function parseXform (xform, callback) {
     var attrs = node.attributes
     if (path === INSTANCE_PATH && !meta.xformId) {
       meta.xformId = attrs.id || tagname
-      if (attrs.version) meta.version = +attrs.version
+      if (attrs.version) meta.xformVersion = +attrs.version
     }
     path += '/' + tagname
   }
