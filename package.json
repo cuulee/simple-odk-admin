@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "budo index.js:build/bundle.js --live -- --extension=.jsx -t [ babelify --stage=0 ] | garnish",
-    "build": "browserify index.js --extension=.jsx -t [ babelify --stage=0 ] > build/bundle.js",
+    "build": "browserify index.js -i ./config.json --extension=.jsx -t [ babelify --stage=0 ] > build/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Gregor MacLennan / Digital Democracy",

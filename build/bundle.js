@@ -1,16 +1,13 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports={
-  "githubToken": "10b18ba6432a9ad09d0648a0bc4ed48fc26f155a"
-}
-
-},{}],2:[function(require,module,exports){
 'use strict';
 
 require('./src/init');
 
-},{"./src/init":394}],3:[function(require,module,exports){
+},{"./src/init":394}],2:[function(require,module,exports){
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
+arguments[4][2][0].apply(exports,arguments)
+},{"dup":2}],4:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -53979,7 +53976,7 @@ _actions.ServerActions.fetch({
 
 _react2['default'].render(_routes2['default'], document.getElementById('app'));
 
-},{"../config":1,"./actions":374,"./dispatcher":393,"./routes":396,"react":371}],395:[function(require,module,exports){
+},{"../config":2,"./actions":374,"./dispatcher":393,"./routes":396,"react":371}],395:[function(require,module,exports){
 /**
  * Simple ODK Admin has a simple heirarchical structure:
  *
@@ -54952,4 +54949,4 @@ Queue.prototype.next = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"events":8,"inherits":29,"json-stable-stringify":30}]},{},[2]);
+},{"events":8,"inherits":29,"json-stable-stringify":30}]},{},[1]);
